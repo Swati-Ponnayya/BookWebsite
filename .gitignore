@@ -1,0 +1,76 @@
+# =========================
+# General
+# =========================
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+
+# OS generated files
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# =========================
+# Node / React (Vite frontend)
+# =========================
+# Assuming React app is in `react-frontend/`
+react-frontend/node_modules/
+react-frontend/dist/
+react-frontend/.env.local
+react-frontend/.env.development.local
+react-frontend/.env.test.local
+react-frontend/.env.production.local
+react-frontend/.vite/
+react-frontend/.next/
+react-frontend/.cache/
+react-frontend/npm-debug.log*
+react-frontend/yarn-debug.log*
+react-frontend/yarn-error.log*
+
+# =========================
+# Java / Spring Boot (backend)
+# =========================
+# Assuming Spring Boot app is in `spring-backend/`
+spring-backend/target/
+spring-backend/.classpath
+spring-backend/.project
+spring-backend/.settings/
+spring-backend/bin/
+spring-backend/logs/
+spring-backend/*.log
+
+# Gradle
+spring-backend/.gradle/
+spring-backend/build/
+spring-backend/gradle-app.setting
+spring-backend/gradle-debug.log
+
+# Maven
+spring-backend/.mvn/
+spring-backend/mvnw
+spring-backend/mvnw.cmd
+
+# Environment files
+spring-backend/.env
+spring-backend/*.env
+
+# =========================
+# Optional: OS or tooling-specific
+# =========================
+*.bak
+*.tmp
+*.backup
+*.orig
+*.rej
+
+# =========================
+# Git
+# =========================
+.git/
