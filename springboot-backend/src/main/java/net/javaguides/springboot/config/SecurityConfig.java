@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,14 +36,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Allow frontend
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -52,14 +55,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> corsConfigurationSource())  // Enable CORS if needed
-            .csrf(csrf -> csrf.disable())  // Disable CSRF for APIs
+            .cors(cors -> corsConfigurationSource())
+            .cors(Customizer.withDefaults())
+            .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll()  
-                .requestMatchers("/api/v1/books", "/api/v1/books/**").permitAll() 
+                .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/books", "/api/v1/books/**", "/api/v1/cart/**").permitAll()
                 .requestMatchers("/api/v1/users/profile").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/v1/books/add-books").permitAll()  
-                .anyRequest().authenticated() 
+                .requestMatchers(HttpMethod.POST,"/api/v1/like-book/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/add-books").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/update-book").permitAll()
+                .requestMatchers(HttpMethod.POST,"/api/v1/add-cart/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/users/update-profile").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/v1/orders/**").authenticated()
+                .requestMatchers("/uploaded_images/**").permitAll()
+                .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

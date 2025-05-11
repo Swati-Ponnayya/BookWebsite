@@ -147,7 +147,7 @@ const Navbar = () => {
                         Settings
                       </button>
                     </Link>
-                    <Link to={"/order"}>
+                    {/* <Link to={"/order"}>
                       <button
                         className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100  rounded-md "
                         onClick={() => {
@@ -156,7 +156,7 @@ const Navbar = () => {
                       >
                         Order History
                       </button>
-                    </Link>
+                    </Link> */}
                     <button
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100  rounded-md "
                       onClick={handleLogout}

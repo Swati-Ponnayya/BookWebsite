@@ -36,7 +36,8 @@ public class User implements UserDetails {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "book_id")
     )
-    private Set<Book> likedBooks = new HashSet<>();
+    private Set<Book> likedBooks;
+
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
@@ -44,6 +45,17 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Rating> ratings = new HashSet<>();
 
+  
+    private String address;
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    
+    private String phoneNumber; 
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    
     public User() {
     }
 
@@ -123,4 +135,14 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+    
+    
+    public Set<Book> getLikedBooks() {
+        return likedBooks;
+    }
+
+    public void setLikedBooks(Set<Book> likedBooks) {
+        this.likedBooks = likedBooks;
+    }
+
 }

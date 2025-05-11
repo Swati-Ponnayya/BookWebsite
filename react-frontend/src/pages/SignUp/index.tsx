@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signup } from "../../services/authService";
+import { signup } from "../../services/UserServices";
 
 const SignUp = () => {
   const [user, setUser] = useState({

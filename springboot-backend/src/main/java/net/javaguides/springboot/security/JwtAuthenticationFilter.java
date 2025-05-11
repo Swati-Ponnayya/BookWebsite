@@ -29,23 +29,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
+    	String authHeader = request.getHeader("Authorization");
+//    	System.out.println("Authorization header: " + authHeader);
+    	
+    	if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    	    chain.doFilter(request, response);
+    	    return;
+    	}
 
-        // If there's no "Authorization" header or the token is not a Bearer token, continue the chain
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        String token = authHeader.substring(7);  // Extract the token from "Bearer <token>"
+    	String token = authHeader.substring(7);
+    	System.out.println("Token extracted: " + token);
         
         try {
-            String email = jwtUtil.extractEmail(token);  // Extract email from the token
-
-            // If a valid email is extracted and no user is authenticated yet
+        	String email = jwtUtil.extractEmail(token);
+//            System.out.println("Email extracted from token: " + email);
+            
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);  // Load user details by email
 
+                boolean isValid = jwtUtil.validateToken(token, userDetails);
+//            	System.out.println("Token valid: " + isValid);
+                if (jwtUtil.isTokenExpired(token)) {
+                    System.out.println("Token is expired");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Token expired");
+                    return;
+                }
+
+            
+//                 System.out.println("UserDetails loaded: " + userDetails);
+                
                 // Validate the token and check for expiration
                 if (jwtUtil.validateToken(token, userDetails) && !jwtUtil.isTokenExpired(token)) {
                     // If valid, set authentication context for the user

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../../services/authService";
+import { login } from "../../services/UserServices";
 
 const Login = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({

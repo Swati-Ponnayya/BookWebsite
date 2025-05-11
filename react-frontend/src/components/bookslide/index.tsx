@@ -91,49 +91,57 @@ const BookCarousel = ({ data, title, link }) => {
           <Slider {...settings}>
             {books.slice(0, 5).map((book) => (
               <div key={book.id} className="px-3 py-6">
-                <div className="bg-white rounded-lg overflow-hidden transition-all duration-300 hover:translate-y-2 hover:shadow-lg border border-[#CEA882]">
-                  <div className="relative bg-[#D1D7E5] rounded-t-lg overflow-hidden">
-                    <div className="aspect-square relative">
-                      <img
-                        src={book.bookCoverImage}
-                        alt={book.title}
-                        className="w-full h-full object-cover bg-[#D1D7E5]"
-                      />
+                <Link
+                  to={`/book-details/${book.title
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")}`}
+                  state={book}
+                >
+                  <div className="bg-white rounded-lg overflow-hidden transition-all duration-300 hover:translate-y-2 hover:shadow-lg border border-[#CEA882]">
+                    <div className="relative bg-[#D1D7E5] rounded-t-lg overflow-hidden">
+                      <div className="aspect-square relative">
+                        <img
+                          src={book.bookCoverImage}
+                          alt={book.title}
+                          className="w-full h-full object-cover bg-[#D1D7E5]"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="p-4 text-[#764932]">
-                    <h3 className="text-lg font-semibold mt-2 truncate">
-                      {book.title}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      by {book.authorName}
-                    </p>
-                    <div className="flex items-center mt-2">
-                      {book.discount ? (
-                        <>
+                    <div className="p-4 text-[#764932]">
+                      <h3 className="text-lg font-semibold mt-2 truncate">
+                        {book.title}
+                      </h3>
+
+                      <p className="text-sm text-gray-600">
+                        by {book.authorName}
+                      </p>
+                      <div className="flex items-center mt-2">
+                        {book.discount ? (
+                          <>
+                            <span className="font-bold">
+                              ₹{" "}
+                              {(
+                                book.originalPrice -
+                                (book.originalPrice * book.discount) / 100
+                              ).toFixed(0)}
+                            </span>
+                            <span className="text-gray-500 line-through mx-2">
+                              ₹ {book.originalPrice.toFixed(0)}
+                            </span>
+                            <span className="text-green-600">
+                              ({book.discount}%)
+                            </span>
+                          </>
+                        ) : (
                           <span className="font-bold">
-                            ₹{" "}
-                            {(
-                              book.originalPrice -
-                              (book.originalPrice * book.discount) / 100
-                            ).toFixed(0)}
+                            ₹ {book.originalPrice}
                           </span>
-                          <span className="text-gray-500 line-through mx-2">
-                            ₹ {book.originalPrice.toFixed(0)}
-                          </span>
-                          <span className="text-green-600">
-                            ({book.discount}%)
-                          </span>
-                        </>
-                      ) : (
-                        <span className="font-bold">
-                          ₹ {book.originalPrice}
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))}
           </Slider>

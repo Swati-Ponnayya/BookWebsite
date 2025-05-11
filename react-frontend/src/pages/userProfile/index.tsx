@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { getUserProfile, updateUserRole } from "../../services/authService";
+import {
+  getUserProfile,
+  updateUserProfile,
+  updateUserRole,
+} from "../../services/UserServices";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const SettingPage = () => {
   const [selectedTab, setSelectedTab] = useState("profile");
@@ -12,6 +19,7 @@ const SettingPage = () => {
     const fetchProfile = async () => {
       try {
         const response = await getUserProfile();
+        console.log(response);
         setUser(response.data);
         setLoading(false);
       } catch (err) {
@@ -23,6 +31,56 @@ const SettingPage = () => {
 
     fetchProfile();
   }, []);
+
+  // Load user data
+  useEffect(() => {
+    // axios
+    //   .get("/api/users/me", {
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   })
+    //   .then((res) => {
+    //     setUser(res.data);
+    //   });
+  }, []);
+
+  // Save changes
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    const userData = {
+      fullName: user.fullName,
+      phoneNumber: user.phoneNumber,
+      email: user.email,
+      address: user.address,
+    };
+    console.log(userData);
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/v1/users/update-profile`,
+        userData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Profile updated successfully:", response);
+    } catch (error) {
+      // Log the entire error to see details
+      console.error(
+        "Error response:",
+        error.response ? error.response.data : error.message
+      );
+
+      // Specifically log the status code to verify the exact issue
+      if (error.response) {
+        console.error("Status Code:", error.response.status); // Should log 403
+        console.error("Error Data:", error.response.data); // Should contain any error message from the backend
+      }
+    }
+  };
 
   const handleConfirmBecomeSeller = async () => {
     try {
@@ -46,16 +104,16 @@ const SettingPage = () => {
 
   return (
     <div className="w-full py-6 bg-[#FCF9DC] min-h-screen">
-      <div className="max-w-6xl mx-auto my-10 p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className=" mx-auto my-6 p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="bg-white p-6 rounded-lg shadow w-full">
           <h2 className="text-2xl font-bold text-[#764932] mb-4">Settings</h2>
           <div className="flex flex-col space-y-2">
             {[
               { label: "Profile", value: "profile" },
-              { label: "Address", value: "address" },
               { label: "Security", value: "security" },
               { label: "Seller", value: "seller" },
+              { label: "Activity", value: "activity" },
             ].map((tab) => (
               <button
                 key={tab.value}
@@ -63,7 +121,7 @@ const SettingPage = () => {
                 className={`p-3 rounded-lg text-left ${
                   selectedTab === tab.value
                     ? "bg-[#875332] text-white font-bold"
-                    : "bg-gray-200 text-gray-700"
+                    : " text-[#875332]"
                 }`}
               >
                 {tab.label}
@@ -76,7 +134,9 @@ const SettingPage = () => {
         <div className="bg-white p-6 rounded-lg shadow w-full h-full flex flex-col col-span-3">
           {selectedTab === "profile" && (
             <div>
-              <h2 className="text-2xl font-bold text-[#764932] mb-6">Profile</h2>
+              <h2 className="text-2xl font-bold text-[#764932] mb-6">
+                Profile{" "}
+              </h2>
               <input
                 type="text"
                 value={user.fullName || ""}
@@ -85,9 +145,11 @@ const SettingPage = () => {
                 placeholder="Full Name"
               />
               <input
-                type="text"
-                value={user.phone || ""}
-                onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                type="number"
+                value={user.phoneNumber || ""}
+                onChange={(e) =>
+                  setUser({ ...user, phoneNumber: e.target.value })
+                }
                 className="w-full mt-3 p-3 border border-gray-300 rounded-lg"
                 placeholder="Phone Number"
               />
@@ -98,50 +160,28 @@ const SettingPage = () => {
                 className="w-full mt-3 p-3 border border-gray-300 rounded-lg bg-gray-100"
                 placeholder="Email Address"
               />
-              <div className="mt-4 text-lg">
-                <strong>Role:</strong>{" "}
-                <span className="text-[#875332] font-semibold">{user.role}</span>
-              </div>
-            </div>
-          )}
 
-          {selectedTab === "address" && (
-            <div>
-              <h2 className="text-2xl font-bold text-[#764932] mb-6">Address</h2>
-              <input
-                type="text"
-                value={user.city || ""}
-                onChange={(e) => setUser({ ...user, city: e.target.value })}
-                className="p-3 border border-gray-300 rounded-lg w-full mt-2"
-                placeholder="City"
-              />
-              <input
-                type="text"
-                value={user.state || ""}
-                onChange={(e) => setUser({ ...user, state: e.target.value })}
-                className="p-3 border border-gray-300 rounded-lg w-full mt-2"
-                placeholder="State"
-              />
-              <input
-                type="text"
-                value={user.zip || ""}
-                onChange={(e) => setUser({ ...user, zip: e.target.value })}
-                className="w-full mt-2 p-3 border border-gray-300 rounded-lg"
-                placeholder="ZIP Code"
-              />
               <input
                 type="text"
                 value={user.address || ""}
                 onChange={(e) => setUser({ ...user, address: e.target.value })}
                 className="w-full mt-2 p-3 border border-gray-300 rounded-lg"
-                placeholder="Street Address"
+                placeholder="Address"
               />
+              <button
+                onClick={handleSave}
+                className="mt-6 px-6 py-3 bg-[#764932] text-white rounded-lg"
+              >
+                Save Changes
+              </button>
             </div>
           )}
 
           {selectedTab === "security" && (
             <div>
-              <h2 className="text-2xl font-bold text-[#764932] mb-6">Security</h2>
+              <h2 className="text-2xl font-bold text-[#764932] mb-6">
+                Security
+              </h2>
               <input
                 type="password"
                 className="w-full mt-3 p-3 border border-gray-300 rounded-lg"
@@ -171,7 +211,9 @@ const SettingPage = () => {
                 Want to sell books? Upgrade your role to a seller.
               </p>
               {user.role === "SELLER" ? (
-                <p className="text-green-600 font-semibold">You are already a seller.</p>
+                <p className="text-green-600 font-semibold">
+                  You are already a seller.
+                </p>
               ) : (
                 <button
                   onClick={() => setShowModal(true)}
@@ -182,14 +224,39 @@ const SettingPage = () => {
               )}
             </div>
           )}
+          {selectedTab === "activity" && (
+            <div>
+              <h2 className="text-2xl font-bold text-[#764932] mb-6">
+                Activity
+              </h2>
+
+              <div className="space-y-4 w-1/2">
+                <Link
+                  to="/liked-books"
+                  className="block text-lg font-medium text-[#764932] hover:text-white hover:bg-[#764932] rounded-lg px-4 py-2 transition-all duration-300"
+                >
+                  Books You Have Liked
+                </Link>
+
+                <Link
+                  to="/order"
+                  className="block text-lg font-medium text-[#764932] hover:text-white hover:bg-[#764932] rounded-lg px-4 py-2 transition-all duration-300"
+                >
+                  Order History
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Confirmation Modal */}
       {showModal && (
-       <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-xl font-bold text-[#764932] mb-4">Confirm Action</h3>
+            <h3 className="text-xl font-bold text-[#764932] mb-4">
+              Confirm Action
+            </h3>
             <p className="mb-6">Are you sure you want to become a seller?</p>
             <div className="flex justify-end space-x-3">
               <button

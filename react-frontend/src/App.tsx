@@ -15,6 +15,9 @@ import SignUp from "./pages/SignUp";
 import SettingPage from "./pages/userProfile";
 import ProceedToBuy from "./pages/checkout";
 import { useState } from "react";
+import { BookDetailsPage } from "./pages/bookDetailsPage";
+import LikedBooksPage from "./pages/likedBooksPage";
+import AdminDashboard from "./pages/adminPanel";
 
 function App() {
   const [authChanged, setAuthChanged] = useState(false); // triggers re-render
@@ -28,6 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/books/:slug" element={<BookListing />} />
+        <Route path="/book-details/:bookSlug" element={<BookDetailsPage />} />
 
         {/* Protected Route: Seller Only */}
         <Route
@@ -38,6 +42,17 @@ function App() {
             ) : (
               <Navigate to="/login" />
             )
+          }
+        />
+
+        <Route
+          path="/admin-panel"
+          element={
+            // token && role === "ADMIN" ? (
+            <AdminDashboard />
+            // ) : (
+            //   <Navigate to="/login" />
+            // )
           }
         />
 
@@ -53,6 +68,11 @@ function App() {
         <Route
           path="/check-out"
           element={token ? <ProceedToBuy /> : <Navigate to="/login" />}
+        />
+
+        <Route
+          path="/liked-books"
+          element={token ? <LikedBooksPage /> : <Navigate to="/login" />}
         />
 
         {/* Public Routes */}

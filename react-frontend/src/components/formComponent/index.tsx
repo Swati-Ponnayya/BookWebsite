@@ -1,15 +1,25 @@
 export const InputField = ({
-    label,
-    type = "text",
-    value,
-    onChange,
-    name,
-    error,
-    min,
-    max,
-  }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+  label,
+  type = "text",
+  value,
+  onChange,
+  name,
+  error,
+  min,
+  max,
+  labelPosition = "top", // "top" or "left"
+}) => {
+  const isLabelLeft = labelPosition === "left";
+
+  return (
+    <div
+      className={`mb-4 ${
+        isLabelLeft ? "flex items-center gap-2" : "flex flex-col"
+      }`}
+    >
+      <label className="text-sm font-medium text-gray-700 min-w-[80px]">
+        {label}
+      </label>
       {type === "textarea" ? (
         <textarea
           name={name}
@@ -28,13 +38,35 @@ export const InputField = ({
           className="w-full px-3 py-2 border border-[#8E6547] rounded-md"
         />
       )}
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && (
+        <p className={`text-red-500 text-sm ${isLabelLeft ? "ml-[85px]" : ""}`}>
+          {error}
+        </p>
+      )}
     </div>
   );
-  
- export const SelectField = ({ label, name, value, onChange, options, error }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+};
+
+export const SelectField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  error,
+  labelPosition = "top", // "top" or "left"
+}) => {
+  const isLabelLeft = labelPosition === "left";
+
+  return (
+    <div
+      className={`mb-4 ${
+        isLabelLeft ? "flex items-center gap-2" : "flex flex-col"
+      }`}
+    >
+      <label className="text-sm font-medium text-gray-700 min-w-[80px]">
+        {label}
+      </label>
       <select
         name={name}
         value={value}
@@ -48,7 +80,11 @@ export const InputField = ({
           </option>
         ))}
       </select>
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && (
+        <p className={`text-red-500 text-sm ${isLabelLeft ? "ml-[85px]" : ""}`}>
+          {error}
+        </p>
+      )}
     </div>
   );
-  
+};

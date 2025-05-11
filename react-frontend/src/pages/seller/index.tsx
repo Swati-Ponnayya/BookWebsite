@@ -13,12 +13,14 @@ import {
 } from "lucide-react";
 import BookServices, { Book } from "../../services/BookServices";
 import { InputField, SelectField } from "../../components/formComponent";
+import axios from "axios";
+import { BookCard } from "../../components/Card";
 
 const BookManagement = () => {
   const useremail = localStorage.getItem("email");
   const emptyBook = {
     title: "",
-    bookCoverImage: "",
+    bookCoverImage: null,
     originalPrice: 0,
     discount: 0,
     publishDate: "",
@@ -35,6 +37,7 @@ const BookManagement = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [authorFilter, setAuthorFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalStock, setTotalStock] = useState(0);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [viewMode, setViewMode] = useState("list");
@@ -50,6 +53,13 @@ const BookManagement = () => {
     try {
       const res = await BookServices.getBooksByCreatorEmail(useremail);
       setBooks(res);
+      let totl = 0;
+      res.map((data) => {
+        totl += Number(data.qty); // ensures qty is treated as a number
+      });
+      console.log(totl);
+
+      setTotalStock(totl);
     } catch (err) {
       console.error("Error fetching books:", err);
     }
@@ -157,19 +167,23 @@ const BookManagement = () => {
   ];
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, files } = e.target;
+
     setNewBook((prev) => ({
       ...prev,
-      [name]: ["originalPrice", "discount", "qty"].includes(name)
-        ? parseFloat(value)
-        : value,
+      [name]:
+        type === "file"
+          ? files[0]
+          : ["originalPrice", "discount", "qty"].includes(name)
+          ? parseFloat(value)
+          : value,
     }));
   };
 
   const validate = () => {
     const err = {};
     if (!newBook.title) err.title = "Title is required";
-    if (!newBook.bookCoverImage) err.bookCoverImage = "Image URL is required";
+    if (!newBook.bookCoverImage) err.bookCoverImage = "Image is required";
     if (newBook.originalPrice <= 0 || newBook.originalPrice > 100000)
       err.originalPrice = "Price must be between 0 and 100000";
     if (newBook.discount < 0 || newBook.discount > 100)
@@ -186,7 +200,16 @@ const BookManagement = () => {
 
   const onSave = (e) => {
     e.preventDefault();
-    if (validate()) handleAddBook(e, newBook);
+    console.log(newBook);
+    if (validate()) {
+      if (newBook.id) {
+        // Update existing book if an id exists
+        handleUpdateBook(e, newBook);
+      } else {
+        // Add a new book if no id exists
+        handleAddBook(e, newBook);
+      }
+    }
   };
 
   const handleModalClose = () => {
@@ -197,181 +220,239 @@ const BookManagement = () => {
   const handleAddBook = async (e, data) => {
     e.preventDefault();
     try {
-      await BookServices.addBook(data);
-      setNewBook(emptyBook);
-      setIsModalOpen(false);
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      if (!token) {
+        console.error("No token found");
+        throw new Error("Authorization token not found.");
+      }
+
+      const { bookCoverImage, ...bookData } = data;
+      if (!bookCoverImage || !(bookCoverImage instanceof File)) {
+        alert("Please upload a valid book cover image.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("book", JSON.stringify(bookData)); // book JSON
+      formData.append("bookCoverImage", bookCoverImage);
+
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/add-books",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Book submitted successfully!");
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Failed to upload book.");
+    }
+  };
+
+  const handleUpdateBook = async (e, data) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      if (!token) {
+        console.error("No token found");
+        throw new Error("Authorization token not found.");
+      }
+
+      console.log(data);
+      const { bookCoverImage, ...bookData } = data;
+      if (
+        !bookCoverImage ||
+        (typeof bookCoverImage !== "string" &&
+          !(bookCoverImage instanceof File))
+      ) {
+        alert("Please upload a valid book cover image.");
+        return;
+      }
+
+      let formData = new FormData();
+      formData.append("bookId", data.id.toString());
+      formData.append("book", JSON.stringify(bookData));
+      if (bookCoverImage) {
+        formData.append("bookCoverImage", bookCoverImage);
+      }
+
+      // Correct way to inspect:
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/update-book",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       fetchBooks();
-    } catch (err) {}
+      handleModalClose();
+      alert("Book Updated successfully!");
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Failed to upload book.");
+    }
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 bg-[#FCF9DC] ">
          
       <div className="p-6">
              
-        <div className="flex flex-col md:flex-row justify-between items-start mb-6">
-          <div className="flex gap-6 mt-2">
-            <BookInfo
-              icon={
-                <svg
-                  className="w-5 h-5 text-[#764932]"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M14 9l-3 3m0 0l-3-3m3 3V3m9 9a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              }
-              label="Books in Stock"
-              value={109}
-            />
-            <div className="h-10 w-px bg-[#764932] mt-1 flex-shrink-0" />
-            <BookInfo
-              icon={
-                <svg
-                  className="w-5 h-5 text-[#764932]"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4l3 3m9-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              }
-              label="Books Sold"
-              value={137}
-            />
+        <div className="flex flex-col-reverse md:flex-row justify-between items-start mb-6">
+          <div className="w-full md:w-1/3 gap-6 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+              <InfoBox label="Books in Stock" value={totalStock} />
+              <InfoBox label="Books Sold" value={137} />
+            </div>
           </div>
           <button
-            className="mt-4 md:mt-0 bg-[#764932] w-1/6 hover:bg-[#8b5a3d] text-white px-4 py-2 rounded-md flex items-center transition-colors"
+            className="my-4 md:mt-0 bg-[#764932] w-full md:w-1/6 hover:bg-[#8b5a3d] text-white px-4 py-2 rounded-md flex items-center transition-colors"
             onClick={() => setIsModalOpen(true)}
           >
-            <Plus size={18} className="mr-2" /> Add Book
+            <Plus size={18} className="mr-2" /> Add New Book
           </button>
         </div>
-                {/* Search and Filters */}     
-        <div className="flex flex-col md:flex-row gap-4 my-8 justify-between items-end">
-          <h1 className="text-2xl font-bold text-[#764932]">Book Inventory</h1>
-          <div className="w-full md:w-6/12 flex flex-col md:flex-row gap-5 md:justify-end">
-            <div className="relative w-full md:w-4/12">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-[#8E6547] rounded-md w-full"
-              />
-              <div className="absolute left-3 top-2.5 text-[#8E6547]">
-                <BookOpen size={16} />
+         {" "}
+        <div className="bg-white px-4 py-2 rounded-2xl">
+          {" "}
+              {/* Search and Filters */}     
+          <div className="flex flex-col md:flex-row gap-4 mt-5 mb-8 justify-between items-end">
+            <h1 className="text-2xl font-bold text-[#764932]">
+              Book Inventory
+            </h1>
+            <div className="w-full md:w-6/12 flex flex-col md:flex-row gap-5 md:justify-end">
+              <div className="relative w-full md:w-4/12">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-[#8E6547] rounded-md w-full"
+                />
+                <div className="absolute left-3 top-2.5 text-[#8E6547]">
+                  <BookOpen size={16} />
+                </div>
+              </div>
+              <div className="flex border border-[#8E6547] rounded-md overflow-hidden w-auto">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-2 flex items-center gap-1 ${
+                    viewMode === "list"
+                      ? "bg-[#8E6547] text-white"
+                      : "bg-white text-[#8E6547]"
+                  }`}
+                >
+                  <ListIcon size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode("card")}
+                  className={`px-3 py-2 flex items-center gap-1 ${
+                    viewMode === "card"
+                      ? "bg-[#8E6547] text-white"
+                      : "bg-white text-[#8E6547]"
+                  }`}
+                >
+                  <Grid size={16} />
+                </button>
               </div>
             </div>
-            <div className="flex border border-[#8E6547] rounded-md overflow-hidden w-auto">
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-3 py-2 flex items-center gap-1 ${
-                  viewMode === "list"
-                    ? "bg-[#8E6547] text-white"
-                    : "bg-white text-[#8E6547]"
-                }`}
-              >
-                <ListIcon size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode("card")}
-                className={`px-3 py-2 flex items-center gap-1 ${
-                  viewMode === "card"
-                    ? "bg-[#8E6547] text-white"
-                    : "bg-white text-[#8E6547]"
-                }`}
-              >
-                <Grid size={16} />
-              </button>
-            </div>
           </div>
-        </div>
-           
-        {viewMode === "list" ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="text-left text-[#8E6547] border-b border-[#CEA882]">
-                  {[
-                    "Title",
-                    "Author",
-                    "Quantity",
-                    "Discount Price",
-                    "Price",
-                    "Discount",
-                  ].map((field) => (
-                    <th
-                      key={field}
-                      className="pb-3 px-2 text-base cursor-pointer"
-                      onClick={() => handleSort(field.toLowerCase())} // Handle sort based on field
-                    >
-                      {field.charAt(0).toUpperCase() + field.slice(1)}
-                      {sortField === field.toLowerCase() &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp size={14} className="inline ml-1" />
-                        ) : sortOrder === "desc" ? (
-                          <ChevronDown size={14} className="inline ml-1" />
-                        ) : (
-                          <span className="inline ml-1 text-[#CEA882]"></span> // Default state
-                        ))}
-                    </th>
-                  ))}
-                  <th className="pb-3 px-2 text-base">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentBooks.map((book) => (
-                  <tr key={book.id} className="border-b border-[#CEA882]">
-                    <td className="py-3 px-2">{book.title}</td>
-                    <td className="py-3 px-2">{book.authorName}</td>
-                    <td className="py-3 px-2">{book.qty}</td>
-                    <td className="py-3 px-2 ">
-                      {(
-                        book.originalPrice -
-                        (book.originalPrice * book.discount) / 100
-                      ).toFixed(0)}
-                    </td>
-                    <td className="py-3 px-2">
-                      {book.originalPrice.toFixed(0)}
-                    </td>
-                    <td className="py-3 px-2">{book.discount?.toFixed(0)}</td>
-                    <td className="py-3 px-2">
-                      <button className="text-[#8E6547] bg-white px-2 py-0 rounded flex items-center">
-                        <Edit size={16} />
-                      </button>
-                    </td>
+             
+          {viewMode === "list" ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="text-left text-[#8E6547] border-b border-[#CEA882]">
+                    {[
+                      { label: "Title", key: "title" },
+                      { label: "Author", key: "authorName" },
+                      { label: "Quantity", key: "qty" },
+                      { label: "Discount Price", key: "discountedPrice" }, // you'll need to calculate this
+                      { label: "Price", key: "originalPrice" },
+                      { label: "Discount", key: "discount" },
+                    ].map(({ label, key }) => (
+                      <th
+                        key={label}
+                        className="pb-3 px-2 text-base cursor-pointer select-none"
+                        onClick={() => handleSort(key)}
+                      >
+                        <div className="flex items-center gap-1">
+                          {label}
+                          {sortField === key && (
+                            <>
+                              {sortOrder === "asc" && <ChevronUp size={14} />}
+                              {sortOrder === "desc" && (
+                                <ChevronDown size={14} />
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {currentBooks.map((book) => (
-              <BookCard key={book.id} book={book} viewMode={viewMode} />
-            ))}
-          </div>
-        )}
-        {totalPages > 1 && renderPagination()}
+                </thead>
+
+                <tbody>
+                  {currentBooks.map((book) => (
+                    <tr key={book.id} className="border-b border-[#CEA882]">
+                      <td className="py-3 px-2">{book.title}</td>
+                      <td className="py-3 px-2">{book.authorName}</td>
+                      <td className="py-3 px-2">{book.qty}</td>
+                      <td className="py-3 px-2 ">
+                        {(
+                          book.originalPrice -
+                          (book.originalPrice * book.discount) / 100
+                        ).toFixed(0)}
+                      </td>
+                      <td className="py-3 px-2">
+                        {book.originalPrice.toFixed(0)}
+                      </td>
+                      <td className="py-3 px-2">{book.discount?.toFixed(0)}</td>
+                      <td className="py-3 px-2">
+                        <button
+                          className="text-[#8E6547] bg-white px-2 py-0 rounded flex items-center"
+                          onClick={() => {
+                            setNewBook(book);
+                            setIsModalOpen(true);
+                          }}
+                        >
+                          <Edit size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {currentBooks.map((book) => (
+                <BookCard key={book.id} book={book} viewMode={viewMode} />
+              ))}
+            </div>
+          )}
+          {totalPages > 1 && renderPagination()}
+        </div>
       </div>
-       
+         
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-end bg-black/50 py-5 px-4 sm:px-6 md:px-8">
           <div className="bg-white rounded-md w-full md:max-w-xl max-h-[80vh] overflow-auto">
             <div className="sticky top-0 bg-white py-4 px-6 border-b border-gray-200 flex justify-between items-center z-10">
-              <h2 className="text-xl font-semibold">Add New Book</h2>
+              <h2 className="text-xl font-semibold text-[#8E6547]">
+                {newBook.id ? "Edit Book" : "Add New Book"}
+              </h2>
+
               <button
                 onClick={handleModalClose}
                 className="text-gray-500 hover:text-gray-700"
@@ -402,13 +483,31 @@ const BookManagement = () => {
                   onChange={handleChange}
                   error={errors.title}
                 />
-                <InputField
-                  label="Book Cover Image URL"
-                  name="bookCoverImage"
-                  value={newBook.bookCoverImage}
-                  onChange={handleChange}
-                  error={errors.bookCoverImage}
-                />
+                {/* <input type="file" name="bookCoverImage" required></input> */}
+                <div className="block my-4">
+                  {" "}
+                  <label className="block">
+                    Book Cover Image:{" "}
+                    <a
+                      href={newBook.bookCoverImageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline text-sm"
+                    >
+                      {newBook.bookCoverImageUrl}
+                    </a>
+                  </label>
+                  <div className="text-sm w-full px-3 py-2 border border-[#8E6547] rounded-md">
+                    <input
+                      type="file"
+                      name="bookCoverImage"
+                      accept="image/*"
+                      onChange={handleChange}
+                      required={!newBook?.id}
+                    />
+                  </div>
+                </div>
+
                 <InputField
                   label="Original Price"
                   type="number"
@@ -483,7 +582,8 @@ const BookManagement = () => {
                     type="submit"
                     className="px-4 py-2 bg-[#8E6547] text-white rounded-md"
                   >
-                    Save
+                    {newBook?.id ? "Update" : "Save"}{" "}
+                    {/* Change button text based on the mode */}
                   </button>
                 </div>
               </form>
@@ -497,74 +597,20 @@ const BookManagement = () => {
 
 export default BookManagement;
 
-const BookInfo = ({ icon, label, value }) => (
-  <div className="flex items-start gap-2 flex-col p-4 rounded-md">
-    <div className="flex items-center gap-1">
-      {icon}
-      <div className="flex flex-col">
-        <p className="text-base text-[#764932]">{label}</p>
-        <span className="text-xl font-bold text-[#764932]">{value}</span>
-      </div>
-    </div>
-  </div>
-);
-
-const BookCard = ({ book, viewMode }) => (
+const InfoBox = ({
+  label,
+  value,
+  onClick,
+}: {
+  label: string;
+  value: number | string;
+  onClick?: () => void;
+}) => (
   <div
-    className={`border border-[#CEA882] ${
-      viewMode === "card"
-        ? "rounded-lg overflow-hidden shadow-md transition-transform hover:shadow-lg hover:-translate-y-1"
-        : ""
-    }`}
+    onClick={onClick}
+    className="flex-1 bg-white transition-all duration-200 p-6 rounded-2xl shadow-md"
   >
-    <div className="relative h-48 bg-[#D1D7E5] flex items-center justify-center">
-      <div className="aspect-square relative">
-        <img
-          src={book.bookCoverImage}
-          alt={book.title}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      {/* <div
-        className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(
-          book.status
-        )}`}
-      >
-        {book.status}
-      </div> */}
-    </div>
-    <div className="p-4">
-      <h3 className="font-semibold text-[#875332] truncate">{book.title}</h3>
-      <p className="text-sm text-gray-600">by {book.authorName}</p>
-      <div className="flex justify-between items-center mt-3 flex-wrap">
-        <div className="flex items-center flex-nowrap">
-          {book.discount ? (
-            <>
-              <span className="font-bold text-base">
-                ₹{" "}
-                {(
-                  book.originalPrice -
-                  (book.originalPrice * book.discount) / 100
-                ).toFixed(0)}
-              </span>
-              <span className="text-gray-500 line-through mx-1 text-sm">
-                ₹ {book.originalPrice.toFixed(0)}
-              </span>
-              <span className="text-green-600 text-sm">({book.discount}%)</span>
-            </>
-          ) : (
-            <span className="font-bold text-lg">₹ {book.originalPrice}</span>
-          )}
-        </div>
-        <div className="flex items-center text-sm flex-nowrap">
-          <span className="text-sm bg-[#FCF9DC] px-2 py-1 rounded">
-            Qty: {book.qty}
-          </span>
-        </div>
-      </div>
-      <button className="mt-3 w-full bg-[#8E6547] text-white px-3 py-1 rounded flex items-center justify-center">
-        <Edit size={16} className="mr-1" /> Edit
-      </button>
-    </div>
+    <h3 className="text-xl font-semibold text-[#8E6547]">{label}</h3>
+    <p className="text-3xl font-bold mt-2 text-gray-800">{value}</p>
   </div>
 );

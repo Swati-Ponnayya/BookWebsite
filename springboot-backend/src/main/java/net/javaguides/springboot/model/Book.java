@@ -219,4 +219,16 @@ public class Book {
         this.createdByEmail = createdByEmail;
     }
 
+    @Transient
+    private String bookCoverImageUrl;
+
+    public String getBookCoverImageUrl() {
+        return bookCoverImageUrl;
+    }
+
+    public void setBookCoverImageUrl(String bookCoverImageUrl) {
+        this.bookCoverImageUrl = bookCoverImageUrl;
+    }
+
+
 }

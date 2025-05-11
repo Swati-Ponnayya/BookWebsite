@@ -2,66 +2,38 @@ import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import Slider from "react-slick";
 import { Book } from "../../services/BookServices";
+import { Link } from "react-router-dom"; // Import Link for navigation
 
 const BookOrganizerHero = ({ data }) => {
-  // const [books, setBooks] = useState([
-  //   {
-  //     id: 64,
-  //     title: "Blind Book Date_64",
-  //     image: "/assets/books/book1.jpg",
-  //     currentPrice: 359,
-  //     originalPrice: 399,
-  //     discount: 10,
-  //     themes: ["IDENTITY", "BETRAYAL", "LITERARY TWIST", "RANDOM"],
-  //     inCart: false,
-  //     isFavorite: false,
-  //   },
-  //   {
-  //     id: 63,
-  //     title: "Blind Book Date_63",
-  //     image: "/assets/books/book2.jpg",
-  //     currentPrice: 359,
-  //     originalPrice: 399,
-  //     discount: 10,
-  //     themes: ["RESILIENCE", "SELF DISCOVERY", "MINDSET SHIFT", "EMPOWERMENT"],
-  //     inCart: false,
-  //     isFavorite: false,
-  //   },
-  //   {
-  //     id: 62,
-  //     title: "Blind Book Date_62",
-  //     image: "/assets/books/book3.jpg",
-  //     currentPrice: 359,
-  //     originalPrice: 399,
-  //     discount: 10,
-  //     themes: [
-  //       "GLOW UP VIBES",
-  //       "WELLNESS VIBES",
-  //       "MINDSET RESET",
-  //       "HEALTH HERO",
-  //     ],
-  //     inCart: false,
-  //     isFavorite: false,
-  //   },
-  // ]);
   const [books, setBooks] = useState<Book[]>([]);
+  const [searchQuery, setSearchQuery] = useState(""); // Track the search input
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]); // Filtered books list
 
   // Update books state whenever `data` changes
   useEffect(() => {
     setBooks(data);
   }, [data]);
-  const toggleFavorite = (id: number): void => {
-    setBooks(
-      books.map((book) =>
-        book.id === id ? { ...book, isFavorite: !book.isFavorite } : book
-      )
-    );
-  };
 
-  const addToCart = (id: number): void => {
-    setBooks(
-      books.map((book) => (book.id === id ? { ...book, inCart: true } : book))
-    );
+  // Update filtered books based on search query
+  useEffect(() => {
+    if (searchQuery) {
+      const results = books.filter((book) =>
+        book.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+      );
+      setFilteredBooks(results);
+    } else {
+      setFilteredBooks([]);
+    }
+  }, [searchQuery, books]);
+
+  // Handle input change for search
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    const regex = /^[a-zA-Z0-9\s]*$/;
+    // Check if the value matches the regex and is within the maxLength
+    if (value.length <= 50 && regex.test(value)) {
+      setSearchQuery(value); // Set the search query if valid
+    }
   };
 
   // Custom arrow components for Slick
@@ -169,18 +141,41 @@ const BookOrganizerHero = ({ data }) => {
               <input
                 type="text"
                 placeholder="Search for books, authors, or genres..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                maxLength={50} // Limits input to 50 characters
                 className="w-full py-3 px-4 pr-12 border border-[#8E6547]/80 rounded-md focus:outline-none focus:ring-1"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 <Search size={20} className="text-[#8E6547]" />
               </div>
             </div>
+
+            {/* Search Suggestions */}
+            {filteredBooks.length > 0 && (
+              <div
+                className="absolute w-full bg-white shadow-md max-h-60 overflow-y-auto z-10 mt-1 rounded-md border"
+                style={{ top: "100%" }}
+              >
+                {filteredBooks.map((book) => (
+                  <Link
+                    key={book.id}
+                    to={`/book-details/${book.title
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")}`}
+                    state={book}
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+                  >
+                    {book.title}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Right Content - Bookshelf Illustration */}
         <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[470px] rounded-lg  w-full md:w-1/2 flex justify-center  md:mt-0">
-          {/* <div className="w-[520px] pt-8"> */}
           <div className="w-[300px] sm:w-[400px]  md:w-5/6 pt-8">
             <Slider {...settings}>
               {books.map((book) => (
@@ -198,9 +193,7 @@ const BookOrganizerHero = ({ data }) => {
 
                       {/* Details on Hover (Bottom Half) */}
                       <div className="absolute bottom-0 left-0 w-full h-1/4 text-[#FCF9DC] flex flex-col justify-center bg-[#8E6547] backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-4">
-                        <h3 className="text-sm font-semibold">
-                          {book.title}
-                        </h3>
+                        <h3 className="text-sm font-semibold">{book.title}</h3>
                         <p className="text-sm text-gray-300">
                           by {book.authorName}
                         </p>

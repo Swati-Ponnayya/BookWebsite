@@ -1,49 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import BookServices from "../../services/BookServices";
+import { useNavigate } from "react-router-dom";
 
 const ProceedToBuy = () => {
-  const cartItems = [
-    {
-      id: 1,
-      title: "The Great Gatsby",
-      price: 359,
-      quantity: 1,
-      image: "/assets/books/book1.jpg",
-    },
-    {
-      id: 2,
-      title: "To Kill a Mockingbird",
-      price: 299,
-      quantity: 2,
-      image: "/images/mockingbird.jpg",
-    },
-    {
-        id: 1,
-        title: "The Great Gatsby",
-        price: 359,
-        quantity: 1,
-        image: "/assets/books/book1.jpg",
-      },
-      {
-        id: 2,
-        title: "To Kill a Mockingbird",
-        price: 299,
-        quantity: 2,
-        image: "/images/mockingbird.jpg",
-      },  {
-        id: 1,
-        title: "The Great Gatsby",
-        price: 359,
-        quantity: 1,
-        image: "/assets/books/book1.jpg",
-      },
-      {
-        id: 2,
-        title: "To Kill a Mockingbird",
-        price: 299,
-        quantity: 2,
-        image: "/images/mockingbird.jpg",
-      },
-  ];
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch cart items when the cart is open
+
+    const fetchCartItems = async () => {
+      try {
+        const response = await BookServices.getCartItem();
+        console.log(response);
+        setCartItems(response); // Set the cart items state
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching cart items:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, []);
 
   const [paymentMethod, setPaymentMethod] = useState("upi");
   const [promoCode, setPromoCode] = useState("");
@@ -68,7 +50,29 @@ const ProceedToBuy = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Order Placed Successfully!");
+    setShowPaymentModal(true);
+
+    setTimeout(async () => {
+      try {
+        const orderResponse = await BookServices.createOrder(cartItems); // <-- Backend call
+        console.log("Order created:", orderResponse);
+        setPaymentStatus("success");
+        setShowPaymentModal(false);
+        navigate("/order");
+        // Optionally clear cart state here
+        setCartItems([]);
+      } catch (error) {
+        setShowPaymentModal(false);
+      }
+    }, 2000);
+
+    // setTimeout(() => {
+    //   // Simulate payment success
+    //   setPaymentStatus("success");
+    //   setShowPaymentModal(false);
+    //   // alert("Order Placed Successfully!");
+    //   // Optionally clear cart or navigate to a confirmation page
+    // }, 2000);
   };
 
   const [user, setUser] = useState({
@@ -146,7 +150,7 @@ const ProceedToBuy = () => {
 
           {/* Payment Method */}
           <h3 className="text-xl font-semibold text-[#764932] mt-4">
-             Payment Method
+            Payment Method
           </h3>
           <div className="grid grid-cols-2 gap-4 mt-2">
             {["upi", "net_banking", "credit_card", "cod"].map((method) => (
@@ -208,7 +212,7 @@ const ProceedToBuy = () => {
         {/* Right Section: Shopping Cart & Price Summary */}
         <div className="bg-white p-6 rounded-lg shadow w-full h-full flex flex-col">
           <h2 className="text-2xl font-bold text-[#764932] mb-6">
-             Shopping Cart
+            Shopping Cart
           </h2>
           <div className="">
             {cartItems.map((item) => (
@@ -216,7 +220,7 @@ const ProceedToBuy = () => {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-12 h-12 rounded-lg"
+                  className="w-15 h-20 rounded-lg"
                 />
                 <div className="ml-4 flex-1">
                   <p className="font-semibold">{item.title}</p>
@@ -268,6 +272,18 @@ const ProceedToBuy = () => {
             </div>
           </div>
         </div>
+        {/* Dummy Payment Modal */}
+        {showPaymentModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center w-80">
+              <h2 className="text-xl font-bold text-[#764932] mb-4">
+                Processing Payment
+              </h2>
+              <p className="text-gray-600 mb-4">Please wait...</p>
+              <div className="loader border-4 border-b-transparent w-10 h-10 mx-auto rounded-full animate-spin border-[#764932]"></div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

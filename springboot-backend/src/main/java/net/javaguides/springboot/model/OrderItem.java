@@ -2,7 +2,6 @@ package net.javaguides.springboot.model;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
@@ -20,7 +19,7 @@ public class OrderItem {
     private Book book;
 
     @Column(nullable = false)
-    private int quantity;
+    private Long quantity;
 
     @Column(nullable = false)
     private double price;
@@ -28,12 +27,50 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(Order order, Book book, int quantity, double price) {
+    public OrderItem(Order order, Book book, Long quantity, double price) {
         this.order = order;
         this.book = book;
         this.quantity = quantity;
         this.price = price;
     }
 
-    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public Book getBook() {
+        return book;
+    }
+
+    public void setBook(Book book) {
+        this.book = book;
+    }
+
+    public Long getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Long quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
 }
