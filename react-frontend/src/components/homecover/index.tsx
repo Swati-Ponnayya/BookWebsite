@@ -185,7 +185,7 @@ const BookOrganizerHero = ({ data }) => {
                     <div className="relative bg-[#FCF9DC] rounded-t-lg overflow-hidden">
                       <div className="w-full h-1/2 relative">
                         <img
-                          src={book.bookCoverImage}
+                          src={book.bookCoverImageUrl}
                           alt={book.title}
                           className=" w-full h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] "
                         />

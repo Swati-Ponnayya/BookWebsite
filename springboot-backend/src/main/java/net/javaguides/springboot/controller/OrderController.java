@@ -13,6 +13,7 @@ import net.javaguides.springboot.repository.UserRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -155,6 +156,17 @@ public class OrderController {
                 .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
+
+        // Set createdByEmail and createdByFullName
+        for (Book book : topSellingBooks) {
+            if (book.getCreatedBy() != null) {
+                Optional<User> userOpt = userRepository.findById(book.getCreatedBy());
+                userOpt.ifPresent(user -> {
+                    book.setCreatedByEmail(user.getEmail());
+                    book.setCreatedByFullName(user.getFullName());
+                });
+            }
+        }
 
         return ResponseEntity.ok(topSellingBooks);
     }

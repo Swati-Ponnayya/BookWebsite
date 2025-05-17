@@ -5,7 +5,6 @@ import {
   updateUserRole,
 } from "../../services/UserServices";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
 import axios from "axios";
 
 const SettingPage = () => {

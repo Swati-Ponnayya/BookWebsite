@@ -200,8 +200,6 @@ class BookService {
       })),
     };
     
-
-    console.log(orderPayload);
     return axios
       .post(`${BASE_URL}/api/v1/orders/create`, orderPayload, {
         headers: {

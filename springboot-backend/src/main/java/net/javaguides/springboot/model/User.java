@@ -45,12 +45,12 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Rating> ratings = new HashSet<>();
 
-  
+    @Column
     private String address;
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    
+    @Column
     private String phoneNumber; 
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }

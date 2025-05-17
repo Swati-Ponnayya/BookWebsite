@@ -230,5 +230,15 @@ public class Book {
         this.bookCoverImageUrl = bookCoverImageUrl;
     }
 
+    @Transient
+    private String createdByFullName;
+
+    public String getCreatedByFullName() {
+        return createdByFullName;
+    }
+
+    public void setCreatedByFullName(String createdByFullName) {
+        this.createdByFullName = createdByFullName;
+    }
 
 }

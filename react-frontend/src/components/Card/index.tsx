@@ -62,7 +62,7 @@ export const BookCard = ({ book, viewMode, user }) => (
                 Qty: {book.qty}
               </span>
             </div>
-            <button className="mt-3 w-full bg-[#8E6547] text-white px-3 py-1 rounded flex items-center justify-center">
+            <button className="mt-3 w-full bg-[#8E6547] text-white px-3 py-1 rounded flex items-center justify-center" >
               <Edit size={16} className="mr-1" /> Edit
             </button>
           </>

@@ -2,6 +2,7 @@ import { Heart, HeartIcon, Star, StarHalf } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import BookServices, { Book } from "../../services/BookServices";
+import { toast } from "react-toastify";
 
 export const BookDetailsPage = () => {
   const { bookSlug } = useParams();
@@ -47,6 +48,7 @@ export const BookDetailsPage = () => {
     try {
       // Send request to the backend to add the book to the user's cart
       const response = await BookServices.updateCartItemQuantity(book.id, 1);
+      toast.success("Added in Cart")
     } catch (error) {
       alert("An error occurred while adding the book to the cart.");
       console.error(error);
@@ -55,10 +57,10 @@ export const BookDetailsPage = () => {
 
   const toggleLike = () => {
     setIsLiked((prev) => !prev);
-    console.log(book.id);
+
     BookServices.toggleLikeBook(book.id)
       .then((message) => {
-        console.log(message); // "Book liked" or "Book unliked"
+       
         // optionally refresh state
       })
       .catch((err) => {

@@ -15,6 +15,7 @@ import BookServices, { Book } from "../../services/BookServices";
 import { InputField, SelectField } from "../../components/formComponent";
 import axios from "axios";
 import { BookCard } from "../../components/Card";
+import { toast } from "react-toastify";
 
 const BookManagement = () => {
   const useremail = localStorage.getItem("email");
@@ -245,8 +246,10 @@ const BookManagement = () => {
           },
         }
       );
-
-      alert("Book submitted successfully!");
+      fetchBooks();
+      handleModalClose();
+      toast.success("Book submitted successfully!");
+      // alert("Book submitted successfully!");
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Failed to upload book.");
@@ -296,7 +299,7 @@ const BookManagement = () => {
       );
       fetchBooks();
       handleModalClose();
-      alert("Book Updated successfully!");
+      toast.success("Book Updated successfully!");
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Failed to upload book.");
@@ -312,7 +315,7 @@ const BookManagement = () => {
           <div className="w-full md:w-1/3 gap-6 mt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
               <InfoBox label="Books in Stock" value={totalStock} />
-              <InfoBox label="Books Sold" value={137} />
+              <InfoBox label="Books Sold" value={3} />
             </div>
           </div>
           <button
@@ -447,7 +450,7 @@ const BookManagement = () => {
          
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-end bg-black/50 py-5 px-4 sm:px-6 md:px-8">
-          <div className="bg-white rounded-md w-full md:max-w-xl max-h-[80vh] overflow-auto">
+          <div className="bg-white rounded-md w-full md:max-w-3xl max-h-[80vh] overflow-auto">
             <div className="sticky top-0 bg-white py-4 px-6 border-b border-gray-200 flex justify-between items-center z-10">
               <h2 className="text-xl font-semibold text-[#8E6547]">
                 {newBook.id ? "Edit Book" : "Add New Book"}
@@ -508,59 +511,80 @@ const BookManagement = () => {
                   </div>
                 </div>
 
-                <InputField
-                  label="Original Price"
-                  type="number"
-                  name="originalPrice"
-                  min={0}
-                  max={100000}
-                  value={newBook.originalPrice}
-                  onChange={handleChange}
-                  error={errors.originalPrice}
-                />
-                <InputField
-                  label="Discount (%)"
-                  type="number"
-                  name="discount"
-                  min={0}
-                  max={100}
-                  value={newBook.discount}
-                  onChange={handleChange}
-                  error={errors.discount}
-                />
-                <InputField
-                  label="Quantity"
-                  type="number"
-                  name="qty"
-                  min={1}
-                  max={10000}
-                  value={newBook.qty}
-                  onChange={handleChange}
-                  error={errors.qty}
-                />
-                <InputField
-                  label="Publish Date"
-                  type="date"
-                  name="publishDate"
-                  value={newBook.publishDate}
-                  onChange={handleChange}
-                  error={errors.publishDate}
-                />
-                <InputField
-                  label="Author Name"
-                  name="authorName"
-                  value={newBook.authorName}
-                  onChange={handleChange}
-                  error={errors.authorName}
-                />
-                <SelectField
-                  label="Category"
-                  name="category"
-                  value={newBook.category}
-                  onChange={handleChange}
-                  options={categoryOptions}
-                  error={errors.category}
-                />
+                <div className="flex flex-col md:flex-row justify-between md:gap-10">
+                  <div className="w-full md:w-1/2">
+                    {" "}
+                    <InputField
+                      label="Original Price"
+                      type="number"
+                      name="originalPrice"
+                      min={0}
+                      max={100000}
+                      value={newBook.originalPrice}
+                      onChange={handleChange}
+                      error={errors.originalPrice}
+                    />
+                  </div>
+                  <div className="w-full md:w-1/2">
+                    {" "}
+                    <InputField
+                      label="Discount (%)"
+                      type="number"
+                      name="discount"
+                      min={0}
+                      max={100}
+                      value={newBook.discount}
+                      onChange={handleChange}
+                      error={errors.discount}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-between md:gap-10">
+                  <div className="w-full md:w-1/2">
+                    <InputField
+                      label="Quantity"
+                      type="number"
+                      name="qty"
+                      min={1}
+                      max={10000}
+                      value={newBook.qty}
+                      onChange={handleChange}
+                      error={errors.qty}
+                    />
+                  </div>
+                  <div className="w-full md:w-1/2">
+                    <InputField
+                      label="Publish Date"
+                      type="date"
+                      name="publishDate"
+                      value={newBook.publishDate}
+                      onChange={handleChange}
+                      error={errors.publishDate}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row justify-between md:gap-10">
+                  <div className="w-full md:w-1/2">
+                    <InputField
+                      label="Author Name"
+                      name="authorName"
+                      value={newBook.authorName}
+                      onChange={handleChange}
+                      error={errors.authorName}
+                    />
+                  </div>
+                  <div className="w-full md:w-1/2">
+                    <SelectField
+                      label="Category"
+                      name="category"
+                      value={newBook.category}
+                      onChange={handleChange}
+                      options={categoryOptions}
+                      error={errors.category}
+                    />
+                  </div>
+                </div>
                 <InputField
                   label="Description"
                   name="description"

@@ -6,6 +6,7 @@ const ProceedToBuy = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentDone, setPaymentDone] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState("");
   const navigate = useNavigate();
 
@@ -51,28 +52,26 @@ const ProceedToBuy = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowPaymentModal(true);
+    setPaymentStatus("processing"); // Optional: set initial status
 
     setTimeout(async () => {
       try {
-        const orderResponse = await BookServices.createOrder(cartItems); // <-- Backend call
+        const orderResponse = await BookServices.createOrder(cartItems);
         console.log("Order created:", orderResponse);
-        setPaymentStatus("success");
-        setShowPaymentModal(false);
-        navigate("/order");
-        // Optionally clear cart state here
-        setCartItems([]);
-      } catch (error) {
-        setShowPaymentModal(false);
-      }
-    }, 2000);
 
-    // setTimeout(() => {
-    //   // Simulate payment success
-    //   setPaymentStatus("success");
-    //   setShowPaymentModal(false);
-    //   // alert("Order Placed Successfully!");
-    //   // Optionally clear cart or navigate to a confirmation page
-    // }, 2000);
+        setPaymentStatus("success"); // Show success UI
+
+        // Wait 1.5 seconds before navigating
+        setTimeout(() => {
+          setShowPaymentModal(false); // Close modal
+          setCartItems([]); // Optionally clear cart
+          navigate("/order");
+        }, 1500);
+      } catch (error) {
+        setPaymentStatus("error"); // optional: show error UI
+        setShowPaymentModal(false); // Close modal on error
+      }
+    }, 2000); // Simulate processing delay
   };
 
   const [user, setUser] = useState({
@@ -274,13 +273,23 @@ const ProceedToBuy = () => {
         </div>
         {/* Dummy Payment Modal */}
         {showPaymentModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg text-center w-80">
               <h2 className="text-xl font-bold text-[#764932] mb-4">
-                Processing Payment
+                {paymentStatus === "success"
+                  ? "Payment Successful"
+                  : "Processing Payment"}
               </h2>
-              <p className="text-gray-600 mb-4">Please wait...</p>
-              <div className="loader border-4 border-b-transparent w-10 h-10 mx-auto rounded-full animate-spin border-[#764932]"></div>
+              <p className="text-gray-600 mb-4">
+                {paymentStatus === "success"
+                  ? "Redirecting to your orders..."
+                  : "Please wait..."}
+              </p>
+              {paymentStatus === "success" ? (
+                <div className="text-green-600 text-3xl font-bold">✔</div>
+              ) : (
+                <div className="loader border-4 border-b-transparent w-10 h-10 mx-auto rounded-full animate-spin border-[#764932]"></div>
+              )}
             </div>
           </div>
         )}

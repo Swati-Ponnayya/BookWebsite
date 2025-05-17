@@ -101,9 +101,9 @@ const BookCarousel = ({ data, title, link }) => {
                     <div className="relative bg-[#D1D7E5] rounded-t-lg overflow-hidden">
                       <div className="aspect-square relative">
                         <img
-                          src={book.bookCoverImage}
+                          src={book.bookCoverImageUrl}
                           alt={book.title}
-                          className="w-full h-full object-cover bg-[#D1D7E5]"
+                          className="w-full h-full object-contain bg-[#D1D7E5]"
                         />
                       </div>
                     </div>

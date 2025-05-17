@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../../services/UserServices";
+import { toast } from "react-toastify";
 
 const SignUp = () => {
   const [user, setUser] = useState({
@@ -48,7 +49,7 @@ const SignUp = () => {
         setErrors(newErrors);
       } else {
         await signup(user);
-        alert("Signup Successful! Please login.");
+        toast.success("Signup Successful! Please login.");
         navigate("/login");
       }
     } catch (err) {
@@ -168,7 +169,7 @@ const SignUp = () => {
 
       <div className="hidden md:flex md:w-1/2 lg:w-2/3 justify-center opacity-80">
         <img
-          src="assets/Booklover.gif"
+          src="assets/Booklover2.gif"
           className="w-auto md:h-[350px] lg:h-[450px]"
           alt="Book Illustration "
         />

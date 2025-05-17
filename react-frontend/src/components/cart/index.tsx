@@ -90,7 +90,7 @@ const Cart = ({ isOpen, onClose }) => {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-16 h-20 rounded-md"
+                  className="w-20 h-28 rounded-md"
                 />
                 <div className="ml-4 flex-1">
                   <h3 className="text-lg font-semibold">{item.title}</h3>
